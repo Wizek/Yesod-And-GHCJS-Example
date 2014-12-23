@@ -68,6 +68,8 @@ library
         ghc-options:   -Wall -fwarn-tabs -O2
 
 
+
+    -- These extensions are common for both apps
     extensions: TemplateHaskell
                 QuasiQuotes
                 OverloadedStrings
