@@ -1,9 +1,10 @@
 module Model where
 
-import Yesod
+-- import Yesod
 import Data.Text (Text)
 import Database.Persist.Quasi
-import Data.Typeable (Typeable)
+import Database.Persist.TH
+-- import Data.Typeable (Typeable)
 import Prelude
 
 -- You can define all of your database entities in the entities file.
