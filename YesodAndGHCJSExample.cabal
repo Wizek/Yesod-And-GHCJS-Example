@@ -12,14 +12,54 @@ Flag library-only
     Default:       False
 
 library
-    exposed-modules: Application
-                     Foundation
-                     Import
-                     Model
-                     Settings
-                     Settings.StaticFiles
-                     Settings.Development
-                     Handler.Home
+    exposed-modules: Model
+    -- For each build type (web-app, app's ui) we have some common dependencies,
+    -- modules, and other options. But there are other cases when we have to
+    -- separate mentioned properties.
+    -- Only Model is being exposed to both apps.
+
+
+    if !impl(ghcjs)
+        -- Server side configuration, i.e. Yesod Web Application Library
+        exposed-modules:
+            Application
+            Foundation
+            Import
+            Settings
+            Settings.StaticFiles
+            Settings.Development
+            Handler.Home
+
+        build-depends: yesod                         >= 1.4.0      && < 1.5
+                     , yesod-core                    >= 1.4.0      && < 1.5
+                     , yesod-auth                    >= 1.4.0      && < 1.5
+                     , yesod-static                  >= 1.4.0      && < 1.5
+                     , yesod-form                    >= 1.4.0      && < 1.5
+                     , persistent-sqlite             >= 2.0        && < 2.2
+                     , shakespeare                   >= 2.0        && < 2.1
+                     , hjsmin                        >= 0.1        && < 0.2
+                     , monad-control                 >= 0.3        && < 0.4
+                     , wai-extra                     >= 3.0        && < 3.1
+                     , yaml                          >= 0.8        && < 0.9
+                     , http-conduit                  >= 2.1        && < 2.2
+                     , directory                     >= 1.1        && < 1.3
+                     , warp                          >= 3.0        && < 3.1
+                     , conduit                       >= 1.0        && < 2.0
+                     , monad-logger                  >= 0.3        && < 0.4
+                     , fast-logger                   >= 2.2        && < 2.3
+                     , wai-logger                    >= 2.2        && < 2.3
+                     , template-haskell
+
+        extensions: NoImplicitPrelude
+                  , NoMonomorphismRestriction
+                  , TupleSections
+
+    else
+        -- Client-side configuration, i.e GHCJS Library
+        exposed-modules: ClientSide
+        build-depends:   ghcjs-base
+        cpp-options:     -DBROWSER_ONLY
+
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
@@ -27,10 +67,10 @@ library
     else
         ghc-options:   -Wall -fwarn-tabs -O2
 
+
     extensions: TemplateHaskell
                 QuasiQuotes
                 OverloadedStrings
-                NoImplicitPrelude
                 CPP
                 MultiParamTypeClasses
                 TypeFamilies
@@ -38,53 +78,44 @@ library
                 GeneralizedNewtypeDeriving
                 FlexibleContexts
                 EmptyDataDecls
-                NoMonomorphismRestriction
                 DeriveDataTypeable
                 ViewPatterns
-                TupleSections
 
     build-depends: base                          >= 4          && < 5
-                 , yesod                         >= 1.4.0      && < 1.5
-                 , yesod-core                    >= 1.4.0      && < 1.5
-                 , yesod-auth                    >= 1.4.0      && < 1.5
-                 , yesod-static                  >= 1.4.0      && < 1.5
-                 , yesod-form                    >= 1.4.0      && < 1.5
                  , bytestring                    >= 0.9        && < 0.11
                  , text                          >= 0.11       && < 2.0
                  , persistent                    >= 2.0        && < 2.2
-                 , persistent-sqlite             >= 2.0        && < 2.2
                  , persistent-template           >= 2.0        && < 2.2
-                 , template-haskell
-                 , shakespeare                   >= 2.0        && < 2.1
-                 , hjsmin                        >= 0.1        && < 0.2
-                 , monad-control                 >= 0.3        && < 0.4
-                 , wai-extra                     >= 3.0        && < 3.1
-                 , yaml                          >= 0.8        && < 0.9
-                 , http-conduit                  >= 2.1        && < 2.2
-                 , directory                     >= 1.1        && < 1.3
-                 , warp                          >= 3.0        && < 3.1
                  , data-default
                  , aeson                         >= 0.6        && < 0.9
-                 , conduit                       >= 1.0        && < 2.0
-                 , monad-logger                  >= 0.3        && < 0.4
-                 , fast-logger                   >= 2.2        && < 2.3
-                 , wai-logger                    >= 2.2        && < 2.3
 
     -- see https://github.com/yesodweb/yesod/issues/814
     if !os(windows)
         build-depends: unix
 
+
 executable         YesodAndGHCJSExample
     if flag(library-only)
         Buildable: False
 
-    main-is:           main.hs
-    hs-source-dirs:    app
-    build-depends:     base
-                     , YesodAndGHCJSExample
-                     , yesod
+    build-depends: base
 
-    ghc-options:       -threaded -O2 -rtsopts -with-rtsopts=-N
+
+    if !impl(ghcjs)
+        main-is:           main.hs
+        hs-source-dirs:    app
+        build-depends:     YesodAndGHCJSExample
+                         , yesod
+        ghc-options:       -threaded -O2 -rtsopts -with-rtsopts=-N
+
+    else
+        main-is:           ClientSide.hs
+        -- hs-source-dirs:    .
+        build-depends:     YesodAndGHCJSExample
+                         , ghcjs-base
+
+    -- TODO Learn more about -rtsopts and -with-rtsopts=-N
+    -- ghc-options:       -threaded -O2
 
 test-suite test
     type:              exitcode-stdio-1.0
