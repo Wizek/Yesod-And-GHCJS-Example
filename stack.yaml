@@ -3,6 +3,7 @@
 # Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
 resolver: lts-3.6
 
+
 # Local packages, usually specified by relative directory name
 packages:
 - '.'
@@ -15,6 +16,9 @@ flags: {}
 
 # Extra package databases containing global packages
 extra-package-dbs: []
+
+# compiler: ghcjs-0.2.0.20151001_ghc-7.10.2
+# compiler-check: match-exact
 
 # Control whether we use the GHC we find on the path
 # system-ghc: true

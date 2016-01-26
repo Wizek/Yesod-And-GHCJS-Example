@@ -11,3 +11,4 @@
 
 Order
     number Int
+    deriving Show
